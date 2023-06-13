@@ -4,7 +4,23 @@ require("dotenv").config();
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
-const agg = [];
+const agg = [
+  { $match: { "quantity": { "$gt": 500 } } },
+  {
+    $addFields:
+    {
+      "discountRatio": { "$cond": [{ "$gt": ["$price", 500] }, 0.65, 0.4] },
+    }
+  },
+  {
+    $addFields:
+    {
+      "salePrice": { "$multiply": ["$price", { "$subtract": [1, "$discountRatio"] }] },
+    }
+
+  },
+  { $unset: "quantity" }
+];
 
 async function run() {
   try {
